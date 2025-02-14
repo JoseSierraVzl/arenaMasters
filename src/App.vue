@@ -1,14 +1,20 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <v-toolbar-title>Mi Aplicación</v-toolbar-title>
+    <v-app-bar app color="black" dark>
+      <v-toolbar-title class="font-weight-bold">ArenaMaster</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn text to="/generate-code">Generar Código</v-btn>
-      <v-btn text to="/users">Usuarios</v-btn>
-      <v-btn text to="/tournaments">Torneos</v-btn>
+      <v-btn :variant="!isActive('/generate-code') ? 'outlined' : 'flat'" rounded="lg" to="/generate-code">
+        Generar Código
+      </v-btn>
+      <v-btn :variant="!isActive('/users') ? 'outlined' : 'flat'" rounded="lg" to="/users" class="mx-6">
+        Usuarios
+      </v-btn>
+      <v-btn :variant="!isActive('/tournaments') ? 'outlined' : 'flat'" rounded="lg" to="/tournaments" class="mr-6">
+        Torneos
+      </v-btn>
     </v-app-bar>
     <v-main>
-      <router-view></router-view> <!-- Aquí se renderizan las vistas -->
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
@@ -16,5 +22,10 @@
 <script>
 export default {
   name: 'App',
+  methods: {
+    isActive(route) {
+      return this.$route.path === route;
+    }
+  }
 };
 </script>

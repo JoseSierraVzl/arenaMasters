@@ -1,16 +1,18 @@
 <template>
-    <v-card>
-        <v-card-title>
-            Lista de Torneos
-        </v-card-title>
-
+    <v-card class="px-2 pt-6" flat>
         <v-card-text>
-            <v-btn color="primary" class="mb-4" @click="openCreateDialog">
-                <font-awesome-icon :icon="faPenToSquare" class="mr-2" />
-                Crear Torneo
-            </v-btn>
-
             <v-data-table :headers="headers" :items="tournaments" class="elevation-1">
+                <template v-slot:top class="bg-black">
+                    <v-toolbar flat>
+                        <v-toolbar-title class="font-weight-bold">Torneos</v-toolbar-title>
+                        <v-divider class="mx-4" inset vertical></v-divider>
+                        <v-spacer />
+                        <v-btn variant="outlined" color="black" @click="openCreateDialog">
+                            <font-awesome-icon :icon="faPenToSquare" class="mr-2" />
+                            Nuevo Torneo
+                        </v-btn>
+                    </v-toolbar>
+                </template>
                 <template v-slot:item.startDate="{ item }">
                     {{ new Date(item.startDate).toLocaleDateString() }}
                 </template>

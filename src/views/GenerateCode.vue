@@ -1,15 +1,22 @@
 <template>
-    <v-container>
+    <v-container class="fill-height d-flex justify-center align-center">
         <v-row justify="center">
-            <v-col cols="12" md="6">
-                <v-card class="pa-4">
-                    <v-card-title class="text-h5">Generar Código de Referido</v-card-title>
-                    <v-card-text>
-                        <v-text-field v-model="codigoReferido" label="Código de Referido" readonly outlined
-                            class="mt-4"></v-text-field>
+            <v-col cols="12" sm="8" md="6" lg="4">
+                <v-card class="pa-6 text-center" elevation="10" rounded="lg">
+                    <v-card-title class="text-h5 font-weight-bold">
+                        Código de Referido
+                    </v-card-title>
+                    <v-card-text v-if="codigoReferido" class="text-h6 bg-grey rounded-lg pa-2 mx-2">
+                        {{ codigoReferido }}
                     </v-card-text>
-                    <v-card-actions>
-                        <v-btn color="primary" @click.prevent="generarCodigoReferido()" block>
+                    <v-card-actions class="mt-3">
+                        <v-btn 
+                            color="black" 
+                            @click="generarCodigoReferido()" 
+                            block
+                            rounded="lg" 
+                            variant="elevated"
+                        >
                             Generar Nuevo Código
                         </v-btn>
                     </v-card-actions>

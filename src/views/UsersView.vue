@@ -1,27 +1,36 @@
 <template>
-    <v-card>
-        <v-card-title>
-            Lista de Usuarios
-        </v-card-title>
-
-        <v-row class="items-center">
-            <v-col cols="12" md="4">
-                <v-btn color="primary" @click="openDialog()" class="w-full md:w-auto">
-                    Agregar Usuario
-                </v-btn>
-            </v-col>
-            <v-col cols="12" md="8">
-                <div class="flex flex-col md:flex-row gap-2">
-                    <v-select v-model="searchType" :items="searchOptions" label="Buscar por" class="w-full md:w-1/3"
-                        density="compact"></v-select>
-                    <v-text-field v-model="search" label="Escriba aquí" class="w-full md:w-2/3" density="compact"
-                        clearable></v-text-field>
-                </div>
-            </v-col>
-        </v-row>
-
-
+    <v-card class="px-2 pt-6" flat>
         <v-data-table :headers="headers" :items="filteredUsers" :items-per-page="5" class="elevation-1">
+            <template v-slot:top>
+                <v-toolbar flat>
+                    <v-toolbar-title class="font-weight-bold">Usuarios</v-toolbar-title>
+                    <v-spacer/>
+                    <v-select
+                        v-model="searchType"
+                        :items="searchOptions"
+                        variant="outlined"
+                        label="Buscar por"
+                        class="w-full md:w-1/6 mr-4 rounded-lg"
+                        density="compact"
+                        hide-details
+                        dense
+                    />
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        class="rounded-lg"
+                        variant="outlined"
+                        label="Buscar"
+                        density="compact"
+                        single-line
+                        hide-details
+                        dense
+                    />
+                    <v-btn variant="outlined" color="black" @click="openDialog()" class="w-full md:w-auto">
+                        Agregar Usuario
+                    </v-btn>
+                </v-toolbar>
+            </template>
             <template v-slot:item.esReferido="{ item }">
                 <span v-if="item.referredBy">{{ item.referredBy }}</span>
                 <span v-else>No referido</span>
