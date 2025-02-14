@@ -1,34 +1,26 @@
 <template>
     <v-card class="px-2 pt-6" flat>
+        <v-row>
+            <v-col cols="12" md="2" class="md:mb-0">
+                <v-select v-model="searchType" :items="searchOptions" variant="outlined" label="Buscar por"
+                    class="rounded-lg" density="compact" hide-details dense />
+            </v-col>
+
+            <v-col cols="12" md="8" class="md:mb-0">
+                <v-text-field v-model="search" append-icon="mdi-magnify" class="rounded-lg" variant="outlined"
+                    label="Buscar" density="compact" single-line hide-details dense />
+            </v-col>
+
+            <v-col cols="12" md="2">
+                <v-btn variant="outlined" color="black" @click="openDialog()" class="w-full">
+                    Agregar Usuario
+                </v-btn>
+            </v-col>
+        </v-row>
         <v-data-table :headers="headers" :items="filteredUsers" :items-per-page="5" class="elevation-1">
             <template v-slot:top>
                 <v-toolbar flat>
                     <v-toolbar-title class="font-weight-bold">Usuarios</v-toolbar-title>
-                    <v-spacer/>
-                    <v-select
-                        v-model="searchType"
-                        :items="searchOptions"
-                        variant="outlined"
-                        label="Buscar por"
-                        class="w-full md:w-1/6 mr-4 rounded-lg"
-                        density="compact"
-                        hide-details
-                        dense
-                    />
-                    <v-text-field
-                        v-model="search"
-                        append-icon="mdi-magnify"
-                        class="rounded-lg"
-                        variant="outlined"
-                        label="Buscar"
-                        density="compact"
-                        single-line
-                        hide-details
-                        dense
-                    />
-                    <v-btn variant="outlined" color="black" @click="openDialog()" class="w-full md:w-auto">
-                        Agregar Usuario
-                    </v-btn>
                 </v-toolbar>
             </template>
             <template v-slot:item.esReferido="{ item }">
@@ -137,49 +129,49 @@ export default {
         },
 
         async saveUser() {
-    try {
-        const { id, username, referralCode, ...userData } = this.form;
-        const isEditing = !!id;
+            try {
+                const { id, username, referralCode, ...userData } = this.form;
+                const isEditing = !!id;
 
-        const existingUser = this.users.find(user => user.username === username && user.id !== id);
-        const existingReferral = referralCode 
-            ? this.users.find(user => user.referralCode === referralCode && user.id !== id) 
-            : null;
+                const existingUser = this.users.find(user => user.username === username && user.id !== id);
+                const existingReferral = referralCode
+                    ? this.users.find(user => user.referralCode === referralCode && user.id !== id)
+                    : null;
 
 
-        if (existingUser) throw new Error("El usuario ya existe.");
-        if (existingReferral) throw new Error("El código de referido ya está en uso.");
+                if (existingUser) throw new Error("El usuario ya existe.");
+                if (existingReferral) throw new Error("El código de referido ya está en uso.");
 
-        if (isEditing) {
-            const userRef = doc(db, 'users', id);
-            const userSnapshot = await getDoc(userRef);
+                if (isEditing) {
+                    const userRef = doc(db, 'users', id);
+                    const userSnapshot = await getDoc(userRef);
 
-            if (!userSnapshot.exists()) throw new Error("Usuario no encontrado en la base de datos.");
+                    if (!userSnapshot.exists()) throw new Error("Usuario no encontrado en la base de datos.");
 
-            await updateDoc(userRef, { username, referralCode, ...userData });
-        } else {
-            const newUser = {
-                username,
-                referralCode,
-                ...userData,
-                registeredAt: new Date().toISOString()
-            };
+                    await updateDoc(userRef, { username, referralCode, ...userData });
+                } else {
+                    const newUser = {
+                        username,
+                        referralCode,
+                        ...userData,
+                        registeredAt: new Date().toISOString()
+                    };
 
-            const docRef = await addDoc(collection(db, 'users'), newUser);
-            const newUserId = docRef.id;
+                    const docRef = await addDoc(collection(db, 'users'), newUser);
+                    const newUserId = docRef.id;
 
-            await updateDoc(doc(db, 'users', newUserId), { id: newUserId });
+                    await updateDoc(doc(db, 'users', newUserId), { id: newUserId });
 
-            this.users.push({ id: newUserId, ...newUser });
+                    this.users.push({ id: newUserId, ...newUser });
+                }
+
+                this.dialog = false;
+                this.resetForm();
+                this.fetchUsers();
+            } catch (error) {
+                console.error("Error al guardar usuario:", error.message);
+            }
         }
-
-        this.dialog = false;
-        this.resetForm();
-        this.fetchUsers();
-    } catch (error) {
-        console.error("Error al guardar usuario:", error.message);
-    }
-}
 
         ,
         editUser(user) {

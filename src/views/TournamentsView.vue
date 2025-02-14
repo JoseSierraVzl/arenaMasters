@@ -1,16 +1,18 @@
 <template>
     <v-card class="px-2 pt-6" flat>
         <v-card-text>
+            <v-row>
+                <v-col class="mb-4">
+                    <v-btn variant="outlined" color="black" @click="openCreateDialog">
+                        <font-awesome-icon :icon="faPenToSquare" class="mr-2" />
+                        Nuevo Torneo
+                    </v-btn>
+                </v-col>
+            </v-row>
             <v-data-table :headers="headers" :items="tournaments" class="elevation-1">
                 <template v-slot:top class="bg-black">
                     <v-toolbar flat>
                         <v-toolbar-title class="font-weight-bold">Torneos</v-toolbar-title>
-                        <v-divider class="mx-4" inset vertical></v-divider>
-                        <v-spacer />
-                        <v-btn variant="outlined" color="black" @click="openCreateDialog">
-                            <font-awesome-icon :icon="faPenToSquare" class="mr-2" />
-                            Nuevo Torneo
-                        </v-btn>
                     </v-toolbar>
                 </template>
                 <template v-slot:item.startDate="{ item }">
@@ -192,7 +194,7 @@
 
 <script>
 import { db, collection, getDocs, addDoc, updateDoc, doc } from '../firebase.js';
-import { ref, reactive, onMounted } from 'vue';
+import { reactive } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faPenToSquare, faTrash, faUsers, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
 
