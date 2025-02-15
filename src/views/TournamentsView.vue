@@ -31,11 +31,15 @@
                     {{ item.participants.length }} Participantes
                 </template>
                 <template v-slot:item.actions="{ item }">
-                    <v-btn color="blue" @click="openEditDialog(item)" small class="mr-2">
-                        <font-awesome-icon :icon="faEdit" class="mr-1" />
-                        Editar
+                    <v-btn density="compact" color="red" @click="deleteTournaments(item.id)">
+                        <template v-slot:prepend>
+                            <font-awesome-icon :icon="['fas', 'trash']" />
+                        </template>
                     </v-btn>
-                    <v-btn color="green" @click="openManageParticipantsDialog(item)" small>
+                    <v-btn color="blue" @click="openEditDialog(item)" density="compact">
+                        <font-awesome-icon :icon="faEdit" class="mr-1" />
+                    </v-btn>
+                    <v-btn color="green" @click="openManageParticipantsDialog(item)" density="compact">
                         <font-awesome-icon :icon="faUsers" class="mr-1" />
                         Participantes
                     </v-btn>
@@ -193,7 +197,7 @@
 </template>
 
 <script>
-import { db, collection, getDocs, addDoc, updateDoc, doc } from '../firebase.js';
+import { db, collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from '../firebase.js';
 import { reactive } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faPenToSquare, faTrash, faUsers, faSave, faEdit } from '@fortawesome/free-solid-svg-icons';
@@ -254,18 +258,18 @@ export default {
     computed: {
         selectedParticipantsDetails() {
             return this.selectedParticipants.map(participant => {
-                if (typeof participant === "object") {
+                if (typeof participant === "object" && participant !== null) {
                     return participant;
                 }
 
                 const user = this.users.find(user => user.id === participant);
 
-                return user ? user : { id: participant, name: participant.name || "Nombre no disponible" };
+                return user ? user : { id: participant, name: "Nombre no disponible" };
             });
         },
 
         availableUsers() {
-            return this.users.filter(user => !this.selectedParticipants.includes(user.id));
+            return this.users.filter(user => !this.selectedParticipants.some(participant => participant.id === user.id));
         }
     },
     methods: {
@@ -280,6 +284,8 @@ export default {
             try {
                 const querySnapshot = await getDocs(collection(db, 'users'));
                 this.users = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                console.log(this.users)
             } catch (error) {
                 console.error("Error al cargar usuarios:", error);
             }
@@ -339,10 +345,18 @@ export default {
             }
         },
 
+        async deleteTournaments(id) {
+            try {
+                const userRef = doc(db, 'tournaments', id);
+                await deleteDoc(userRef);
+                this.fetchTournaments();
+                console.log(`El torneo con ID ${id} eliminado correctamente.`);
+            } catch (error) {
+                console.error('Error al eliminar torneo:', error);
+            }
+        },
+
         async removeParticipant(participantId) {
-
-            console.log(participantId)
-
             this.selectedParticipants = this.selectedParticipants.filter(participant => participant.id !== participantId);
 
             try {
@@ -372,7 +386,6 @@ export default {
                 }
             }
         },
-
         openCreateDialog() {
             this.form = reactive({
                 category: '',
@@ -401,9 +414,16 @@ export default {
 
         openManageParticipantsDialog(tournament) {
             this.selectedTournament = tournament;
-            this.selectedParticipants = [...tournament.participants];
+            this.selectedParticipants = tournament.participants.map(participant => {
+                if (typeof participant === "object" && participant !== null) {
+                    return participant;
+                }
+
+                const user = this.users.find(user => user.id === participant);
+                return user ? user : { id: participant, name: "Nombre no disponible" };
+            });
             this.dialogManageParticipants = true;
-        },
+        }
     },
 
     mounted() {
