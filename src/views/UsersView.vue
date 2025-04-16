@@ -6,7 +6,7 @@
                     class="rounded-lg" density="compact" hide-details dense />
             </v-col>
 
-            <v-col cols="12" md="8" class="md:mb-0">
+            <v-col cols="12" md="6" class="md:mb-0">
                 <v-text-field v-model="search" append-icon="mdi-magnify" class="rounded-lg" variant="outlined"
                     label="Buscar" density="compact" single-line hide-details dense />
             </v-col>
@@ -14,6 +14,12 @@
             <v-col cols="12" md="2">
                 <v-btn variant="outlined" color="black" @click="openDialog()" class="w-full">
                     Agregar Usuario
+                </v-btn>
+            </v-col>
+
+            <v-col cols="12" md="2">
+                <v-btn variant="outlined" color="red" @click="clearPayments()" class="w-full">
+                    Limpiar Pagos
                 </v-btn>
             </v-col>
         </v-row>
@@ -29,6 +35,18 @@
             </template>
             <template v-slot:item.registeredAt="{ item }">
                 {{ new Date(item.registeredAt).toLocaleString() }}
+            </template>
+
+            <template v-slot:item.pago="{ item }">
+                <span>{{ item.pago ? 'Pago' : 'No pago'}}</span>
+            </template>
+
+            <template v-slot:item.monto="{ item }">
+                <span>{{ item.monto}}</span>
+            </template>
+
+            <template v-slot:item.rango="{ item }">
+                <span>{{ item.rango}}</span>
             </template>
 
             <template v-slot:item.actions="{ item }">
@@ -58,6 +76,9 @@
                     <v-text-field v-model="form.kills" label="Kills Acumuladas" type="number"></v-text-field>
                     <v-text-field v-model="form.referralCode" label="Código de Referido"></v-text-field>
                     <v-text-field v-model="form.referredBy" label="Código de Referido Por (Opcional)"></v-text-field>
+                    <v-select v-model="form.rango" :items="rangos" label="Rango" required class="mb-4"></v-select>
+                    <v-checkbox v-model="form.pago" label="Pago"></v-checkbox>
+                    <v-text-field v-model="form.monto" label="Monto" type="number" :disabled="!form.pago"></v-text-field>
                 </v-card-text>
                 <v-card-actions>
                     <v-btn color="grey" @click="dialog = false">Cancelar</v-btn>
@@ -88,7 +109,8 @@ export default {
                 { title: "ID", value: "id" },
                 { title: "Usuario", value: "username" },
                 { title: "Código de Referido", value: "referralCode" },
-                { title: "Es Referido", value: "referredBy" }
+                { title: "Es Referido", value: "referredBy" },
+                { title: "Pago", value: "pago" }
             ],
             headers: [
                 { title: 'ID', value: 'id', align: 'start', sortable: true },
@@ -96,6 +118,9 @@ export default {
                 { title: 'Usuario', value: 'username', align: 'start', sortable: true },
                 { title: 'Teléfono', value: 'phone', align: 'start', sortable: true },
                 { title: 'Kills Acumuladas', value: 'kills', align: 'start', sortable: true },
+                { title: 'Pago', value: 'pago', align: 'center', sortable: false },
+                { title: 'Monto', value: 'monto', align: 'center', sortable: false },
+                { title: 'Rango', value: 'rango', align: 'center', sortable: false },
                 { title: 'Código de Referido', value: 'referralCode', align: 'start', sortable: true },
                 { title: 'Es Referido', value: 'esReferido', align: 'start', sortable: false },
                 { title: 'Registrado en', value: 'registeredAt', align: 'start', sortable: true },
@@ -103,8 +128,17 @@ export default {
             ],
             users: [],
             dialog: false,
-            form: { id: null, name: '', username: '', phone: '', kills: 0, referralCode: '', referredBy: '' },
-            isEditing: false
+            form: { id: null, name: '', username: '', phone: '', kills: 0, pago: false, monto: 0, referralCode: '', referredBy: '', rango: '' },
+            isEditing: false,
+            rangos: [
+                { title: "Novato", value: "novato" },
+                { title: "Veterano", value: "Veterano" },
+                { title: "Elite", value: "Elite" },
+                { title: "Profesional", value: "profesional" },
+                { title: "Maestro", value: "maestro" },
+                { title: "Gran maestro", value: "gran maestro" },
+                { title: "Leyenda", value: "leyenda" },
+            ]
         };
     },
     computed: {
@@ -138,7 +172,6 @@ export default {
                     ? this.users.find(user => user.referralCode === referralCode && user.id !== id)
                     : null;
 
-
                 if (existingUser) throw new Error("El usuario ya existe.");
                 if (existingReferral) throw new Error("El código de referido ya está en uso.");
 
@@ -171,9 +204,8 @@ export default {
             } catch (error) {
                 console.error("Error al guardar usuario:", error.message);
             }
-        }
+        },
 
-        ,
         editUser(user) {
             this.form = { ...user };
             this.isEditing = true;
@@ -182,6 +214,9 @@ export default {
 
         async deleteUser(id) {
             try {
+                const confirmDelete = confirm("¿Estás seguro de que deseas eliminar este usuario?");
+                if (!confirmDelete) return;
+
                 const userRef = doc(db, 'users', id);
                 await deleteDoc(userRef);
                 this.users = this.users.filter(user => user.id !== id);
@@ -192,13 +227,32 @@ export default {
         },
 
         resetForm() {
-            this.form = { id: null, name: '', username: '', phone: '', kills: 0, referralCode: '', referredBy: '' };
+            this.form = { id: null, name: '', username: '', phone: '', kills: 0, pago: false, monto: 0, referralCode: '', referredBy: '', rango: '' };
             this.isEditing = false;
         },
 
         openDialog() {
             this.resetForm();
             this.dialog = true;
+        },
+
+        async clearPayments() {
+            try {
+                const confirmClear = confirm("¿Estás seguro de que deseas limpiar los pagos de todos los usuarios?");
+                if (!confirmClear) return;
+
+                const usersToUpdate = this.users.filter(user => user.pago);
+
+                for (const user of usersToUpdate) {
+                    const userRef = doc(db, 'users', user.id);
+                    await updateDoc(userRef, { pago: false, monto: 0 });
+                }
+
+                this.fetchUsers();
+                console.log("Pagos limpiados correctamente.");
+            } catch (error) {
+                console.error("Error al limpiar pagos:", error);
+            }
         }
     },
 
@@ -207,6 +261,5 @@ export default {
     }
 };
 </script>
-
 
 <style scoped></style>

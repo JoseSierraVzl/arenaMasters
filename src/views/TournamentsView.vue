@@ -157,6 +157,18 @@
                 <v-card-text>
                     <v-select v-model="selectedParticipants" :items="availableUsers" item-title="name" item-value="id"
                         return-object label="Seleccionar Participantes" multiple class="mb-4">
+
+                        <template v-slot:selection="{ item, index }">
+                            <v-chip v-if="index < 3">
+                                <span>{{ item.title }}</span>
+                            </v-chip>
+                            <span
+                                v-if="index === 3"
+                                class="text-grey text-caption align-self-center"
+                            >
+                                (+{{ selectedParticipants.length - 3 }} others)
+                            </span>
+                            </template>
                     </v-select>
                     <v-sheet max-height="300px" class="overflow-y-auto">
                         <v-list dense>
@@ -164,14 +176,15 @@
                                 :key="participant.id">
                                 <v-card class="w-100 pa-2 mb-2">
                                     <v-row align="center">
-                                        <v-col cols="10">
+                                        <v-col cols="9">
                                             <v-list-item-title class="font-weight-bold">
                                                 {{ participant.name }}
+                                                <span class="text-sm pl-2 text-gray-400">{{ participant.username }}</span>
                                             </v-list-item-title>
                                         </v-col>
 
-                                        <v-col cols="2" class="text-right">
-                                            <v-btn icon color="red" @click="removeParticipant(participant.id)">
+                                        <v-col cols="3" class="text-right">
+                                            <v-btn icon size="small" density="comfortable" color="red" @click="removeParticipant(participant.id)">
                                                 <font-awesome-icon :icon="faTrash" />
                                             </v-btn>
                                         </v-col>
